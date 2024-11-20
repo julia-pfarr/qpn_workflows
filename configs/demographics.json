@@ -1,0 +1,137 @@
+{
+    "data_sources": {
+        "description": "data sources with their configurations including relative paths to nipoppy dataset",
+        "redcap": {
+            "COPN_MRI_export": {
+                "path": "tabular/redcap/COPN-MRIDataReport2023110_DATA_LABELS_2024-02-19_0851.csv",
+                "index_cols": ["Record ID:","Event Name"]
+            },
+            "sarah_extended_export":{
+                "path": "tabular/redcap/chunked/redcap_chunked_report.csv",
+                "old_path": "tabular/redcap/COPN-QPNDataMoCAUPDRSNeur_DATA_LABELS_2024-04-15_1202.csv",
+                "index_cols": ["Record ID:","Event Name"]
+            },
+            "sarah_report": {
+                "path": "tabular/redcap/QPN MoCA-UPDRS-Neuropsy data_Sarah.csv",
+                "index_cols": ["record_id","redcap_event_name"]
+            },
+            "demographic_query": {
+                "path": "tabular/redcap/Demographic_QPN_query.csv",
+                "index_cols": ["record_id","redcap_event_name"]
+            },
+            "demographic_report": {
+                "path": "tabular/redcap/COPN-AndrewVo-Demographic.csv",
+                "index_cols": ["Record ID:","Event Name"]
+            },
+            "enrollment_report": {
+                "old_path": "tabular/redcap/chunked/redcap_chunked_report.csv",
+                "path": "tabular/redcap/COPN-AndrewEnrollment_Group_DoB_DATA_LABELS_2024-09-25_0215.csv",
+                "index_cols": ["Record ID:","Event Name"]
+            }
+
+        },
+        "local": {
+            "legacy_DOB": {
+                "path": "tabular/recruitment/legacy_freeze/QPN-DOB-90subjects.csv",
+                "index_cols": ["Record ID"]
+            },
+            "Suivi_RPQ": {
+                "path": "tabular/recruitment/Suivi_RPQ_En_cours.csv",
+                "index_cols": ["participant_id"]
+            },
+            "MRI_dates": {
+                "path": "tabular/recruitment/MRI_acqdata.csv",
+                "index_cols": ["participant_id","session"]
+            },
+            "manifest": {
+                "path": "manifest.csv",
+                "index_cols": ["participant_id","visit","session"]
+            }
+        }
+    },
+
+    "variables": {
+        "description": "Map of internal and external variable names and their data sources / instruments",
+        "participant_id": {
+            "type": "string",
+            "primary_source": "local",
+            "primary_instrument": "manifest",
+            "sources": {
+                "local":{
+                    "manifest": ["participant_id"]
+                },
+                "redcap": {
+                    "COPN_MRI_export": ["Record ID:"],
+                    "sarah_report": ["record_id"],
+                    "global_query": ["record_id"]
+                }
+            }
+        },
+        "dob": {
+            "type": "date",
+            "primary_source": "redcap",
+            "secondary_source": "local",
+            "primary_instrument":"enrollment_report",
+            "secondary_instrument":"legacy_DOB",
+            "sources": {
+                "local": {
+                    "legacy_DOB":["Date of Birth/Date de naissance"]
+                },
+                "redcap": {
+                    "enrollment_report":["Date of Birth/Date de naissance:"]
+                }
+            }
+        },
+        "sex": {
+                "type": "string",
+                "primary_source": "redcap",
+                "primary_instrument":"demographic_query",
+                "sources": {
+                    "local":{
+                        "Suivi_RPQ":["Sex (M-F-Trans)"]
+                    },
+                    "redcap": {
+                        "demographic_report": ["1. Gender/Genre:"],
+                        "demographic_query": ["gender"]
+                    }
+                }
+        },
+        "education": {
+            "type": "string",
+            "primary_source": "redcap",
+            "primary_instrument":"demographic_query",
+            "sources": {
+                "local":{},
+                "redcap": {
+                    "demographic_report": ["5. Years of education (calculate the total number of years starting from grade 1 onwards including high school and post-secondary (College, University, or others)):    5. Nombre d'années d'études (calculez le nombre total d'années à partir de la première année, y compris l'école secondaire et les études postsecondaires (collège, université ou autres)):"],
+                    "demographic_query": ["yrs_education"]
+                }
+            }
+        },
+        "enrollment_group": {
+            "type": "str",
+            "primary_source": "redcap",
+            "primary_instrument": "enrollment_report",
+            "sources": {
+                "redcap": {
+                    "enrollment_report": ["Enrolment Group:    Groupe d'inscription:"]
+                }
+            }
+        },
+        "legacy_group": {
+            "type": "string",
+            "primary_source": "redcap",
+            "primary_instrument":"sarah_extended_export",
+            "sources": {
+                "local":{
+                    "Suivi_RPQ":["Group"]
+                },
+                "redcap": {
+                    "COPN_MRI_export":["Enrolment Group:"],
+                    "sarah_extended_export": ["Enrolment Group:    Groupe d'inscription:"],
+                    "global_query": ["enrolment_group_v2"]
+                }
+            }
+        }
+    }
+}
