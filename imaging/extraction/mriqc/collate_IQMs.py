@@ -39,6 +39,7 @@ def run(pipeline_dir, bids_participants, session_id, run_id, datatype, output_di
     Run the collate IQM script
     """
     qc_df = pd.DataFrame()
+    missing_participants = []
     for participant in bids_participants:
         if datatype == "anat":
             qc_json = f"{pipeline_dir}/sub-{participant}/ses-{session_id}/{datatype}/sub-{participant}_ses-{session_id}_run-{run_id}_T1w.json"
@@ -47,13 +48,20 @@ def run(pipeline_dir, bids_participants, session_id, run_id, datatype, output_di
         else:
             raise ValueError(f"Invalid datatype: {datatype}")
 
-        qc_series = get_qc_series(qc_json, datatype)
+        if os.path.exists(qc_json):
+            qc_series = get_qc_series(qc_json, datatype)
+            
+            index_series = pd.Series([participant, session_id], index=["participant_id", "session_id"])
 
-        qc_df = qc_df.append(qc_series, ignore_index=True)
+            qc_series = pd.concat([index_series, qc_series], axis=0)
+            qc_df = pd.concat([qc_df, pd.DataFrame(qc_series)], axis=1)
+        else:
+            missing_participants.append(participant)
 
-
+    qc_df = qc_df.transpose()
     qc_df.to_csv(f"{output_dir}/{datatype}_IQM.csv", index=False)
-    print(f"Collated IQM for {n_bids_participants} participants to {output_dir}")
+    print(f"Collated {datatype} IQM for {len(qc_df)} participants to {output_dir}")
+    print(f"Missing QC metrics for {len(missing_participants)}")
 
 if __name__ == '__main__':
     # argparse
@@ -89,17 +97,18 @@ if __name__ == '__main__':
 
     if participants_list == None:
         # use doughnut
-        doughnut_file = f"{DATASET_ROOT}/sourcedata/imaging//doughnut.tsv"
-        doughnut_df = pd.read_csv(doughnut_file, sep="\t")
-        doughnut_df["in_bids"] = doughnut_df["in_bids"].astype(bool)
+        doughnut_file = f"{DATASET_ROOT}/sourcedata/imaging/doughnut.tsv"
+        doughnut_df = pd.read_csv(doughnut_file, sep="\t", dtype = {'in_bids': bool, 'session_id': str})
+    
         bids_participants = doughnut_df[(doughnut_df["session_id"]==session_id) & (doughnut_df["in_bids"])]["participant_id"].unique()
         n_bids_participants = len(bids_participants)
-        print(f"Running all {n_bids_participants} participants in doughnut with session: ses-{session_id}")
+        print(f"Running all {n_bids_participants} participants in doughnut with session_id: {session_id}")
     else:
         # use custom list
         bids_participants = list(pd.read_csv(participants_list)["participant_id"])
 
         n_bids_participants = len(bids_participants)
-        print(f"Running {n_bids_participants} participants from the list with session: ses-{session_id}")
+        print(f"Running {n_bids_participants} participants from the list with session_id: {session_id}")
 
-        run(pipeline_dir, bids_participants, session_id, run_id, datatype, output_dir)
+    
+    run(pipeline_dir, bids_participants, session_id, run_id, datatype, output_dir)
