@@ -89,10 +89,10 @@ if __name__ == '__main__':
 
     if participants_list == None:
         # use doughnut
-        doughnut_file = f"{DATASET_ROOT}/sourcedata/imaging//doughnut.csv"
-        doughnut_df = pd.read_csv(doughnut_file)
+        doughnut_file = f"{DATASET_ROOT}/sourcedata/imaging//doughnut.tsv"
+        doughnut_df = pd.read_csv(doughnut_file, sep="\t")
         doughnut_df["in_bids"] = doughnut_df["in_bids"].astype(bool)
-        bids_participants = doughnut_df[(doughnut_df["session_id"]==session) & (doughnut_df["in_bids"])]["participant_id"].unique()
+        bids_participants = doughnut_df[(doughnut_df["session_id"]==session_id) & (doughnut_df["in_bids"])]["participant_id"].unique()
         n_bids_participants = len(bids_participants)
         print(f"Running all {n_bids_participants} participants in doughnut with session: ses-{session_id}")
     else:
