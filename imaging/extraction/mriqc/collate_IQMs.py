@@ -14,10 +14,10 @@ def get_qc_series(qc_json, datatype="anat"):
     qc_df = pd.read_json(qc_json, orient="columns")
 
     if datatype == "anat":
-        qc_cols_exact = ["cjv", "cnr", "efc", "fber"]
+        qc_cols_exact = ["cjv", "cnr", "efc", "fber", "rpve"]
         qc_cols_prefix = ["fwhm", "summary", "icv", "inu", "snr", "tmp"]
     elif datatype == "func":
-        qc_cols_exact = ["tsnr","snr","gcor","eft","fber"]
+        qc_cols_exact = ["tsnr", "snr", "gcor", "efc", "fber", "aor", "aqi"]
         qc_cols_prefix = ["fwhm", "summary", "fd", "gsr", "dvars"]
     else:
         raise ValueError(f"Invalid datatype: {datatype}")
