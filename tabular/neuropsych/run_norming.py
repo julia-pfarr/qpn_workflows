@@ -1,7 +1,7 @@
 import argparse
 import json
 
-import nipoppy.workflow.logger as my_logger
+import logger as my_logger
 import numpy as np
 import pandas as pd
 from utils import *
@@ -13,7 +13,7 @@ HELPTEXT = """
 Script to perform norming of neuropsy scores
 """
 
-VISIT_DATE_COL = "Date of assessment"
+VISIT_DATE_COL = "redcap_event_name" #"Date of assessment"
 
 def run_contrast_norming(instrument_config, logger):
     """ Special function to calculate contrast based norming
@@ -107,23 +107,26 @@ def run_variable_norming(instrument_config, logger):
     data_paths = config["data_paths"]
     stratification = config["stratification"]
 
+    participant_id_col = instrument["participant_id_column"]
+
     norming_procedure = instrument["norming_procedure"]
     if norming_procedure.lower() in ["regress", "regression"]:
         regress_model_dict = instrument["regression_model_coefficients"]
     else:
         regress_model_dict = None
 
-    raw_score_name = instrument["raw_score_name"]
-    normed_score_name = instrument["normed_score_name"]
-    participant_id_col = data_paths["participant_id_column"]
+    raw_score_column = instrument["raw_score_column"]
+    baseline_raw_score_column = instrument["baseline_raw_score_column"]
+    baseline_transform_column = data_paths["baseline_transform_column"]
+    normed_score_name = instrument["normed_score_column"]
 
 
-    stratification[raw_score_name] = {"dtype": instrument["dtype"]}
+    stratification[raw_score_column] = {"dtype": instrument["dtype"]}
     strata_cols = list(stratification.keys())
 
     logger.info("-"*80)
     logger.info("Starting score normalization process...")
-    logger.info(f"Instrument name: {raw_score_name}")
+    logger.info(f"Instrument name: {raw_score_column}")
     logger.info(f"participant_id_col: {participant_id_col}")
     logger.info(f"Using {strata_cols} as stratification columns")
     logger.info("-"*60)
@@ -134,13 +137,15 @@ def run_variable_norming(instrument_config, logger):
     logger.info("Reading raw scores")
     raw_data_df = read_raw_scores(data_paths)
 
+    # print(f"raw_data_df: {raw_data_df}")
+
     raw_data_df = raw_data_df[[participant_id_col, VISIT_DATE_COL] + strata_cols]
 
     # Format date and set unique index (to handle multiple visits)
     raw_data_df[VISIT_DATE_COL] = raw_data_df[VISIT_DATE_COL].astype(str)
     raw_data_df = raw_data_df.set_index([participant_id_col,VISIT_DATE_COL])
 
-    raw_data_df[raw_score_name] = raw_data_df[raw_score_name].astype(float)
+    raw_data_df[raw_score_column] = raw_data_df[raw_score_column].astype(float)
 
     logger.info("Checking valid scores")
     valid_data_df = get_valid_scores(raw_data_df,instrument,logger)
@@ -154,7 +159,10 @@ def run_variable_norming(instrument_config, logger):
     else:
         logger.info("Reading baseline scores")
         baseline_df = read_baseline_scores(data_paths)
-        baseline_df, baselines_ranges = format_baseline_scores(baseline_df, stratification, raw_score_name)
+        # Baseline excel sheet has naming typos causing mismatch with redcap data
+        # Therefore explicitly renaming the column based on the instrument config
+        baseline_df = baseline_df.rename(columns={baseline_raw_score_column:raw_score_column})
+        baseline_df, baselines_ranges = format_baseline_scores(baseline_df, stratification, raw_score_column)
         n_strata = len(baseline_df)
         logger.info("-"*60)
         logger.info(f"n_starta: {n_strata}")
@@ -166,9 +174,10 @@ def run_variable_norming(instrument_config, logger):
     normed_data_df = valid_data_df.copy()
     normed_data_df = normed_data_df.sort_index() # Avoids panda's multiindex perf warning
 
+    # print(f"normed_data_df: {normed_data_df}")
     for idx, participant_data in normed_data_df.iterrows():
-        normed_score, note = get_normed_score(participant_data, baseline_df, stratification, raw_score_name,
-                                            logger, norming_procedure, regress_model_dict)
+        normed_score, note = get_normed_score(participant_data, baseline_df, stratification, raw_score_column,
+                                              baseline_transform_column, logger, norming_procedure, regress_model_dict)
         normed_data_df.loc[idx,normed_score_name] = normed_score
         normed_data_df.loc[idx,"note"] = note
 
@@ -177,7 +186,7 @@ def run_variable_norming(instrument_config, logger):
 
     logger.warning(f"Participants (n={n_missing_matches}) are missing stratification matches")
     logger.info("-"*60)
-    logger.info(f"Norming procedure completed for {raw_score_name}")
+    logger.info(f"Norming procedure completed for {raw_score_column}")
     logger.info("-"*80)
 
     save_df = pd.merge(raw_data_df[strata_cols],
@@ -188,16 +197,16 @@ def run_variable_norming(instrument_config, logger):
 
 # Save data
 def save_normed_data(instrument_config, save_df, logger):
-    """ Save normed dataframe to a new excel file + spreadsheet
+    """ Save normed dataframe to a new file
     """
     config = get_norming_config(instrument_config)
     data_paths = config["data_paths"]
-    normed_data = data_paths["normed_data"]
-    normed_sheet = data_paths["normed_sheet"]
+    normed_data = data_paths["normed_data_file"]
 
     logger.info(f"Saving normed data to: {normed_data}")
     save_df = save_df.reset_index()
-    save_df.to_excel(normed_data, sheet_name=normed_sheet)
+    # save_df.to_excel(normed_data, sheet_name=normed_sheet)
+    save_df.to_csv(normed_data, index=False)
 
 if __name__ == '__main__':
     # argparse

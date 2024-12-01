@@ -1,7 +1,8 @@
 {
     "instrument": {
-        "raw_score_name": "RCFT Copy (Raw score)",
-        "normed_score_name": "RCFT Copy (Normed score)",
+        "raw_score_column": "Copy raw",
+        "baseline_raw_score_column": "RCFT Copy (Raw score)",
+        "normed_score_column": "RCFT Copy (Normed score)",
         "reference": "link to a document",
         "dtype": "float",
         "range": {
@@ -9,13 +10,14 @@
             "max": 36,
             "n/a": 999
         },
+        "participant_id_column": "participant_id",
         "norming_procedure": "regression",
         "regression formula": {
             "note": "The reference formula should reflect the regression_model_coefficients below",
             "RCFT Copy (Z-score)": "RCFT Copy (Z-score) = (raw score - (0.187*Education - 0.946*Sex - 0.029*Age + 30.858)) / 3.664"
         },
         "regression_model_coefficients": {
-            "Education level test": 0.187,
+            "Education level (primary school = 6 years, high school = 12, cegep = 14, bachelor = 17, master = 19, phD = 23": 0.187,
             "Sex (1=men; 2=women)": -0.946,
             "Age at time of assessment": -0.029,
             "intercept": 30.858,
@@ -24,13 +26,11 @@
         }
     },
     "data_paths": {
-        "raw_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/RPQ_neuropsych_raw_data.xlsx",
-        "raw_sheet": "Parkinson patients",
-        "baseline_data": "",
-        "baseline_sheet": "",
-        "normed_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/RCFT_Copy_norm.xlsx",
-        "normed_sheet": "Normed data",
-        "participant_id_column": "Patient #"
+        "raw_data_file": "<path_to>/qpn/tabular/assessments/neuropsych_demo.csv",
+        "baseline_data_file": "<path_to>/RPQ_neuropsych_baselines.xlsx",
+        "baseline_sheet": "Rey_copy",
+        "baseline_transform_column": "",
+        "normed_data_file": "<path_to>/qpn/tabular/normed_neuropsych/RCTF_copy_normed.csv"
         },
 
     "stratification": {
@@ -45,7 +45,7 @@
             "dtype": "categorical",
             "range": [1,2]
         },
-        "Education level test":{
+        "Education level (primary school = 6 years, high school = 12, cegep = 14, bachelor = 17, master = 19, phD = 23":{
             "dtype": "continuous",
             "range": {
                 "min": 0,

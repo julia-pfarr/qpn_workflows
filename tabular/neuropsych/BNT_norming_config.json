@@ -1,32 +1,38 @@
 {
     "instrument": {
-        "raw_score_name": "BNT sans indices (Raw score)",
-        "normed_score_name": "BNT sans indices (Normed score)",
-        "reference": "link to a document",
-        "dtype": "int",
+        "raw_score_column": "BNT sans indice (Raw score)",
+        "baseline_raw_score_column": "BNT sans indices (Raw score)",
+        "normed_score_column": "BNT sans indices (Normed score)",
+        "reference": "link to citation",
+        "dtype": "continuous",
         "range": {
             "min": 25,
             "max": 60,
             "n/a": 999
         },
+        "participant_id_column": "participant_id",
         "norming_procedure": "lookup_scaled_score"
     },
     "data_paths": {
-        "raw_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/digit_span_test.xlsx",
-        "raw_sheet": "Parkinson patients",
-        "baseline_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/digit_span_test.xlsx",
-        "baseline_sheet": "Norm Table Standards",
-        "normed_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/digit_span_normed.xlsx",
-        "normed_sheet": "Normed data",
-        "participant_id_column": "Patient #"
-        },
-
+        "raw_data_file": "<path_to>/qpn/tabular/assessments/neuropsych_demo.csv",
+        "baseline_data_file": "<path_to>/RPQ_neuropsych_baselines.xlsx",
+        "baseline_sheet": "BNT raw",
+        "baseline_transform_column": "Scaled_score",
+        "normed_data_file": "<path_to>/tabular/normed_neuropsych/BNT_normed.csv"
+    },
     "stratification": {
         "Age at time of assessment":{
-            "dtype": "int",
+            "dtype": "continuous",
             "range": {
                 "min": 30,
                 "max": 100
+            }
+        },
+        "Education level (primary school = 6 years, high school = 12, cegep = 14, bachelor = 17, master = 19, phD = 23":{
+            "dtype": "continuous",
+            "range": {
+                "min": 1,
+                "max": 25
             }
         }
     }

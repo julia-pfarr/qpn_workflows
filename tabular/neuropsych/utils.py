@@ -14,25 +14,29 @@ def get_norming_config(config_file):
 def read_raw_scores(instrument):
     """ Read raw data tables for a specified instrument dict
     """
-    raw_data = instrument["raw_data"]
-    raw_sheet = instrument["raw_sheet"]
-    df = pd.read_excel(raw_data, sheet_name=raw_sheet, engine='openpyxl',header=1).dropna(axis=0,how="all")
+    raw_data = instrument["raw_data_file"]
+
+    # read csv
+    df = pd.read_csv(raw_data).dropna(axis=0,how="all")
+
+    # read excel
+    # df = pd.read_excel(raw_data, sheet_name=raw_sheet, engine='openpyxl',header=1).dropna(axis=0,how="all")
 
     return df
 
 def read_baseline_scores(instrument):
     """ Read raw data tables for a specified instrument dict
     """
-    raw_data = instrument["baseline_data"]
+    raw_data = instrument["baseline_data_file"]
     raw_sheet = instrument["baseline_sheet"]
     df = pd.read_excel(raw_data, sheet_name=raw_sheet, engine='openpyxl').dropna(axis=0,how="all")
 
     return df
 
-def get_valid_scores(df, instrument, logger, raw_score_name="raw_score_name"):
+def get_valid_scores(df, instrument, logger, raw_score_column="raw_score_column"):
     """ Check and remove out of bound or NaN scores
     """
-    name = instrument[raw_score_name]
+    name = instrument[raw_score_column]
     score_range = instrument["range"]
     nan_val = int(score_range["n/a"])
     min_val = int(score_range["min"])
@@ -48,7 +52,7 @@ def get_valid_scores(df, instrument, logger, raw_score_name="raw_score_name"):
     logger.info(f"n_nan_val (i.e. {nan_val}): {n_nan_val}, n_missing_val: {n_missing_val}")
     logger.info(f"Excluding ({n_missing_val}) participants with missing scores")
     # clean-up
-    df[name] = df[name].replace({nan_val:np.NaN})
+    df[name] = df[name].replace({nan_val:np.nan})
     df = df[df[name].notna()]
 
     max_available_val = np.max(df[name])
@@ -89,7 +93,7 @@ def format_baseline_scores(df, stratification, raw_score_name):
 
     return df, baselines_ranges
 
-def get_normed_score(participant, baseline_df, stratification, raw_score_name, logger,
+def get_normed_score(participant, baseline_df, stratification, raw_score_column, baseline_colunm, logger,
                      norming_procedure="lookup_scaled_score", regress_model_dict=None):
     """ Filter baseline scores and return match for a given participant
     """
@@ -102,11 +106,11 @@ def get_normed_score(participant, baseline_df, stratification, raw_score_name, l
                 note = "Missing regression model coefficients"
 
             else:
-                participant_dict = {"raw_score":participant[raw_score_name]}
+                participant_dict = {"raw_score":participant[raw_score_column]}
                 regress_covars = []
                 for var_name in list(stratification.keys()):
                     participant_dict[var_name] = participant.loc[var_name]
-                    if var_name != raw_score_name:
+                    if var_name != raw_score_column:
                         regress_covars.append(var_name)
 
                 normed_score = regress(participant_dict, regress_covars, regress_model_dict)
@@ -143,11 +147,12 @@ def get_normed_score(participant, baseline_df, stratification, raw_score_name, l
         else:
             # Select based on norming_procedure
             if norming_procedure.lower() in ["lookup_scaled_score","scaled_score"]:
-                normed_score = baseline_match_df["Scaled_score"].values[0]
+                normed_score = baseline_match_df[baseline_colunm].values[0]
+                # normed_score = baseline_match_df["Scaled_score"].values[0]
                 note = "Scaled score"
 
             elif norming_procedure.lower() in ["zscore", "z-score", "z_score"]:
-                participant_dict = {"raw_score":participant[raw_score_name],
+                participant_dict = {"raw_score":participant[raw_score_column],
                                     "Mean":baseline_match_df["Mean"].values[0],
                                     "SD":baseline_match_df["SD"].values[0]}
 

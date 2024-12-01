@@ -1,25 +1,26 @@
 {
     "instrument": {
-        "raw_score_name": "Digit Span Total (Raw score)",
-        "normed_score_name": "Digit Span Total (Normed score)",
-        "reference": "link to a document",
+        "raw_score_column": "Digit Span Forward - total correct (Raw score) ",
+        "baseline_raw_score_column": "Digit Span Forward - total correct (Raw score) ",
+        "normed_score_column": "Digit Span Forward - total correct (Raw score) (Normed score)",
+        "reference": "link to citation",
         "dtype": "continuous",
         "range": {
             "min": 0,
             "max": 32,
             "n/a": 999
         },
+        "participant_id_column": "participant_id",
         "norming_procedure": "lookup_scaled_score"
     },
+
     "data_paths": {
-        "raw_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/digit_span_test.xlsx",
-        "raw_sheet": "Parkinson patients",
-        "baseline_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/digit_span_test.xlsx",
-        "baseline_sheet": "Norm Table Standards",
-        "normed_data": "/home/nikhil/projects/Parkinsons/qpn/tabular/assessments/neuropysch/digit_span_normed.xlsx",
-        "normed_sheet": "Normed data",
-        "participant_id_column": "Patient #"
-        },
+        "raw_data_file": "<path_to>/qpn/tabular/assessments/neuropsych_demo.csv",
+        "baseline_data_file": "<path_to>/RPQ_neuropsych_baselines.xlsx",
+        "baseline_sheet": "DSF",
+        "baseline_transform_column": "Digit Span Forward - total correct (scaled_score)",
+        "normed_data_file": "<path_to>/qpn/tabular/normed_neuropsych/DSF_normed.csv"
+    },
 
     "stratification": {
         "Age at time of assessment":{
@@ -28,10 +29,6 @@
                 "min": 30,
                 "max": 100
             }
-        },
-        "Sex (1=men; 2=women)":{
-            "dtype": "categorical",
-            "range": [1,2]
         }
     }
 }
